@@ -147,6 +147,10 @@ class ExactInference(InferenceModule):
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
+        print("noisyDistance: ", noisyDistance)
+        print("emissionModel: ", emissionModel)
+        print("pacmanPosition: ", pacmanPosition)
+        print("index: ", self.index)
 
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
