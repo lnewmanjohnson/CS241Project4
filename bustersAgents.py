@@ -169,11 +169,10 @@ class GreedyBustersAgent(BustersAgent):
             currAction = [action, 0]
             for ghostPositionDistribution in livingGhostPositionDistributions:
                 #for each ghost that is currently alive:
-                print("ghostPositionDistribution: ", ghostPositionDistribution)
                 for position in ghostPositionDistribution:
                     #for each position that ghost could be in:
                     if (self.distancer.getDistance(Actions.getSuccessor(pacmanPosition, action), position) != 0):
-                        currAction[1] += ghostPositionDistribution[position] * self.distancer.getDistance(Actions.getSuccessor(pacmanPosition, action), position)
+                        currAction[1] += float(ghostPositionDistribution[position] * self.distancer.getDistance(Actions.getSuccessor(pacmanPosition, action), position))
             if (currAction[1] < bestAction[1]):
                 bestAction = currAction
         return bestAction[0]

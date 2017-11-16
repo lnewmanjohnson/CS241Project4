@@ -240,6 +240,7 @@ class ParticleFilter(InferenceModule):
     def __init__(self, ghostAgent, numParticles=300):
         InferenceModule.__init__(self, ghostAgent);
         self.setNumParticles(numParticles)
+        self.distribution = util.Counter()
 
     def setNumParticles(self, numParticles):
         self.numParticles = numParticles
@@ -298,63 +299,39 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
+        distribution = self.getBeliefDistribution()
 
-        #distribution = self.getBeliefDistribution()
 
-        """ currently removed because I think we go from 
-        self.particleList = []
-        i = 0
-        while (i < self.numParticles):
-            self.particleList.append(util.sample(distribution))
-            i += 1
-        """
+        #eat test
+        if (noisyDistance == None):
+            distribution = util.Counter()
+            distribution[self.getJailPosition()] = 1
+            distribution.normalize() #TODO
+            self.particleList = []
+            i = 0
+            while (i < self.numParticles):
+                self.particleList.append(util.sample(distribution))
+                i += 1
 
-        distribution = util.Counter()
-        for particle in self.particleList:
-            distanceToPacman = util.manhattanDistance(particle, pacmanPosition)
-            if (distanceToPacman <= 10):
-                distribution[particle] += emissionModel[distanceToPacman]
+        #reweight distrubtion based on new information
+        for state in self.legalPositions:
+            distanceToPacman = util.manhattanDistance(state, pacmanPosition)
+            distribution[state] = distribution[state] * emissionModel[distanceToPacman]
+        distribution.normalize() #TODO
+
+        #test for bottoming out
         if (distribution.totalCount() == 0):
             self.initializeUniformly(gameState)
             distribution = self.getBeliefDistribution()
-        if (noisyDistance == None):
-            #if the ghost is captured
-            distribution = util.Counter()
-            distribution[self.getJailPosition()] = 1
-        distribution.normalize()
-        #print("distribution:", distribution)
-        self.particleList = []
-        i = 0
-        while (i < self.numParticles):
-            self.particleList.append(util.sample(distribution))  #handing it a malformed distribution it seems
-            i += 1
-        distribution = util.Counter()
-        for particle in self.particleList:
-            distribution[particle] += 1
-        distribution.normalize()
+        distribution.normalize() #TODO
 
-
-
-
-
-
-
-        """
-
-        #should create a list of particles that a distributed according to our previous belief
-        for particle in self.particleList:
-            distanceToPacman = util.manhattanDistance(particle, pacmanPosition)
-            if (distanceToPacman >= 10):
-                distribution[particle] = distribution[particle] / emissionModel[distanceToPacman]
-        distribution.normalize()
+        #resample for next iteration
         self.particleList = []
         i = 0
         while (i < self.numParticles):
             self.particleList.append(util.sample(distribution))
-            i += 1
+            i += 1        
 
-
-        """
     def elapseTime(self, gameState):
         """
         Update beliefs for a time step elapsing.
@@ -370,9 +347,13 @@ class ParticleFilter(InferenceModule):
         a belief distribution.
         """
         "*** YOUR CODE HERE ***"
-
-
-        util.raiseNotDefined()
+        
+        #translate each particle forward based on current belief distribution
+        i = 0
+        while (i < len(self.particleList)):
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, self.particleList[i]))
+            self.particleList[i] = util.sample(newPosDist)
+            i += 1
 
     def getBeliefDistribution(self):
         """
