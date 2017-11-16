@@ -308,13 +308,15 @@ class ParticleFilter(InferenceModule):
             self.particleList.append(util.sample(distribution))
             i += 1
         """
-
+        #print("self.numParticles:",self.numParticles)
+        #print("looked at observe")
         distribution = util.Counter()
         for particle in self.particleList:
             distanceToPacman = util.manhattanDistance(particle, pacmanPosition)
             if (distanceToPacman <= 10):
                 distribution[particle] += emissionModel[distanceToPacman]
         if (distribution.totalCount() == 0):
+            #if we bottomed out
             self.initializeUniformly(gameState)
             distribution = self.getBeliefDistribution()
         if (noisyDistance == None):
@@ -326,35 +328,13 @@ class ParticleFilter(InferenceModule):
         self.particleList = []
         i = 0
         while (i < self.numParticles):
-            self.particleList.append(util.sample(distribution))  #handing it a malformed distribution it seems
+            self.particleList.append(util.sample(distribution))
             i += 1
         distribution = util.Counter()
         for particle in self.particleList:
             distribution[particle] += 1
         distribution.normalize()
 
-
-
-
-
-
-
-        """
-
-        #should create a list of particles that a distributed according to our previous belief
-        for particle in self.particleList:
-            distanceToPacman = util.manhattanDistance(particle, pacmanPosition)
-            if (distanceToPacman >= 10):
-                distribution[particle] = distribution[particle] / emissionModel[distanceToPacman]
-        distribution.normalize()
-        self.particleList = []
-        i = 0
-        while (i < self.numParticles):
-            self.particleList.append(util.sample(distribution))
-            i += 1
-
-
-        """
     def elapseTime(self, gameState):
         """
         Update beliefs for a time step elapsing.
@@ -370,9 +350,40 @@ class ParticleFilter(InferenceModule):
         a belief distribution.
         """
         "*** YOUR CODE HERE ***"
+        #print("self.numParticles:",self.numParticles)
+        distribution = util.Counter()
+        for particle in self.particleList:
+            newPos = util.sample(self.getPositionDistribution(self.setGhostPosition(gameState, particle)))
+            #print("newPos:", newPos)
+            distribution[newPos] += 1#self.getPositionDistribution(self.setGhostPosition(gameState, particle))[newPos]
+        distribution.normalize()
+        self.particleList = []
+        i = 0
+        while (i < self.numParticles):
+            self.particleList.append(util.sample(distribution))
+            i += 1
 
 
-        util.raiseNotDefined()
+
+
+        """
+        distribution = util.Counter()
+        for particle in self.particleList:
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, particle))
+            distribution[particle] += newPosDist[particle]
+        #error checking will go here if its necessary
+        distribution.normalize()
+        self.particleList = []
+        i = 0
+        while (i < self.numParticles):
+            self.particleList.append(util.sample(distribution))
+            i += 1
+        distribution = util.Counter()
+        for particle in self.particleList:
+            distribution[particle] += 1
+        distribution.normalize()
+        """
+
 
     def getBeliefDistribution(self):
         """
