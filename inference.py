@@ -258,6 +258,14 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        self.particleList = []
+        i = 1
+        while (i <= self.numParticles):
+            for state in self.legalPositions:
+                if (i <= self.numParticles):
+                    self.particleList.append(state)
+                    i += 1
+
 
     def observe(self, observation, gameState):
         """
@@ -290,8 +298,63 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
 
+        #distribution = self.getBeliefDistribution()
+
+        """ currently removed because I think we go from 
+        self.particleList = []
+        i = 0
+        while (i < self.numParticles):
+            self.particleList.append(util.sample(distribution))
+            i += 1
+        """
+
+        distribution = util.Counter()
+        for particle in self.particleList:
+            distanceToPacman = util.manhattanDistance(particle, pacmanPosition)
+            if (distanceToPacman <= 10):
+                distribution[particle] += emissionModel[distanceToPacman]
+        if (distribution.totalCount() == 0):
+            self.initializeUniformly(gameState)
+            distribution = self.getBeliefDistribution()
+        if (noisyDistance == None):
+            #if the ghost is captured
+            distribution = util.Counter()
+            distribution[self.getJailPosition()] = 1
+        distribution.normalize()
+        #print("distribution:", distribution)
+        self.particleList = []
+        i = 0
+        while (i < self.numParticles):
+            self.particleList.append(util.sample(distribution))  #handing it a malformed distribution it seems
+            i += 1
+        distribution = util.Counter()
+        for particle in self.particleList:
+            distribution[particle] += 1
+        distribution.normalize()
+
+
+
+
+
+
+
+        """
+
+        #should create a list of particles that a distributed according to our previous belief
+        for particle in self.particleList:
+            distanceToPacman = util.manhattanDistance(particle, pacmanPosition)
+            if (distanceToPacman >= 10):
+                distribution[particle] = distribution[particle] / emissionModel[distanceToPacman]
+        distribution.normalize()
+        self.particleList = []
+        i = 0
+        while (i < self.numParticles):
+            self.particleList.append(util.sample(distribution))
+            i += 1
+
+
+        """
     def elapseTime(self, gameState):
         """
         Update beliefs for a time step elapsing.
@@ -307,6 +370,8 @@ class ParticleFilter(InferenceModule):
         a belief distribution.
         """
         "*** YOUR CODE HERE ***"
+
+
         util.raiseNotDefined()
 
     def getBeliefDistribution(self):
@@ -317,7 +382,11 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        distribution = util.Counter()
+        for particle in self.particleList:
+            distribution[particle] += 1
+        distribution.normalize()
+        return distribution
 
 class MarginalInference(InferenceModule):
     """
