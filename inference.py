@@ -323,15 +323,12 @@ class ParticleFilter(InferenceModule):
         if (distribution.totalCount() == 0):
             self.initializeUniformly(gameState)
             distribution = self.getBeliefDistribution()
-        if (distribution.totalCount() == 0):
-            print("just remade but somehow still == 0")
         distribution.normalize() #TODO
 
         #resample for next iteration
         self.particleList = []
         i = 0
         while (i < self.numParticles):
-           #print("distribution:", distribution)
             self.particleList.append(util.sample(distribution))
             i += 1        
 

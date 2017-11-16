@@ -473,8 +473,6 @@ def sample(distribution, values = None):
         items = sorted(distribution.items())
         distribution = [i[1] for i in items]
         values = [i[0] for i in items]
-    if (sum(distribution) == 0):
-        print("sum(distribution) == 0")
     if sum(distribution) != 1:
         distribution = normalize(distribution)
     choice = random.random()
