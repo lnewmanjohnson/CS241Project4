@@ -496,19 +496,60 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
+        #acquire persistent objects
         possibleStates = list(itertools.product(self.legalPositions, self.legalPositions))
-        distribution = self.getBeliefDistribution()
 
         #eat test
         #this is the first way to do it by manipulating the distribution
+        
+        for j in range(self.numGhosts):
+            if (noisyDistances[j] == None):
+                i = 0
+                while (i < len(self.particleList)):
+                    if (self.particleList[i][j] != self.getJailPosition(j)):
+                        print("before:",self.particleList[i], self.getJailPosition(j))
+                        self.particleList[i] = self.getParticleWithGhostInJail(self.particleList[i], j)
+                        print("after:",self.particleList[i])
+                    i += 1
+        distribution = self.getBeliefDistribution()
+                        
+
+        """
+        while (i < len(self.particleList)):
+            for j in range(self.numGhosts):
+                if (noisyDistances[j] == None):
+                    self.particleList[i] = self.getParticleWithGhostInJail(self.particleList[i], j)
+            i += 1
+
+
+
+        
+        for i in range(self.numGhosts):
+            if (noisyDistances[i] == None):
+                print("ghost",i, " is dead")
+                print("distribution before:",distribution)
+                for state in possibleStates:
+                    if (state[i] != self.getJailPosition(i)):
+                        distribution[self.getJailPosition(i)] += distribution[state]
+                        distribution[state] = 0
+                    distribution.normalize()
+                print("distribution after:",distribution)
+        
+
+        """
+        """
         if not (all(distance != None for distance in noisyDistances)):
             print("in eatTest")
             for i in range(self.numGhosts):
-                if (noisyDistances[i] == 0):
+                if (noisyDistances[i] == None):
+                    print("ghost ",i, " is eaten")
                     for state in possibleStates:
-                        if (state[i] != self.getJailPosition[i]):
+                        if (state[i] != self.getJailPosition(i)):
+                            #print(self.getJailPosition(i))
+                            distribution[self.getJailPosition(i)] += distribution[state]
                             distribution[state] = 0
         distribution.normalize()
+        """
 
         #there may be another way to do it by manipulating the particleList            
         
@@ -520,7 +561,7 @@ class JointParticleFilter:
 
         #test for bottoming out
         if (distribution.totalCount() == 0):
-            self.initializeParticles(gameState)
+            self.initializeParticles()
             distribution = self.getBeliefDistribution()
         distribution.normalize()
 
