@@ -276,7 +276,7 @@ class ParticleFilter(InferenceModule):
             for state in self.legalPositions:
                 if (i <= self.numParticles):
                     self.particleList.append(state)
-                    i += 1
+                i += 1
 
 
     def observe(self, observation, gameState):
@@ -310,31 +310,24 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
+        #get persistent
         distribution = self.getBeliefDistribution()
-
 
         #eat test
         if (noisyDistance == None):
             distribution = util.Counter()
             distribution[self.getJailPosition()] = 1
-            distribution.normalize() #TODO
-            self.particleList = []
-            i = 0
-            while (i < self.numParticles):
-                self.particleList.append(util.sample(distribution))
-                i += 1
 
         #reweight distrubtion based on new information
         for state in self.legalPositions:
             distanceToPacman = util.manhattanDistance(state, pacmanPosition)
             distribution[state] = distribution[state] * emissionModel[distanceToPacman]
-        distribution.normalize() #TODO
+        distribution.normalize()
 
         #test for bottoming out
         if (distribution.totalCount() == 0):
             self.initializeUniformly(gameState)
             distribution = self.getBeliefDistribution()
-        distribution.normalize() #TODO
 
         #resample for next iteration
         self.particleList = []
@@ -359,7 +352,7 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         
-        #translate each particle forward based on current belief distribution
+        #translate each particle forward with sample of transition model
         i = 0
         while (i < len(self.particleList)):
             newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, self.particleList[i]))
@@ -459,7 +452,7 @@ class JointParticleFilter:
             for state in possibleStates:
                 if (i <= self.numParticles):
                     self.particleList.append(state)
-                    i += 1
+                i += 1
 
 
     def addGhostAgent(self, agent):
