@@ -465,20 +465,26 @@ class JointParticleFilter:
         """
         Resamples the set of particles using the likelihood of the noisy
         observations.
+
         To loop over the ghosts, use:
+
           for i in range(self.numGhosts):
             ...
+
         A correct implementation will handle two special cases:
           1) When a ghost is captured by Pacman, all particles should be updated
              so that the ghost appears in its prison cell, position
              self.getJailPosition(i) where `i` is the index of the ghost.
+
              As before, you can check if a ghost has been captured by Pacman by
              checking if it has a noisyDistance of None.
+
           2) When all particles receive 0 weight, they should be recreated from
              the prior distribution by calling initializeParticles. After all
              particles are generated randomly, any ghosts that are eaten (have
-             noisyDistance of 0) must be changed to the jail Position. This will
-             involve changing each particle if a ghost has been eaten.
+             noisyDistance of None) must be changed to the jail Position. This
+             will involve changing each particle if a ghost has been eaten.
+
         self.getParticleWithGhostInJail is a helper method to edit a specific
         particle. Since we store particles as tuples, they must be converted to
         a list, edited, and then converted back to a tuple. This is a common
@@ -507,6 +513,7 @@ class JointParticleFilter:
             for j in range(self.numGhosts):
                 if (noisyDistances[j] != None):
                     distribution[state] = distribution[state]*emissionModels[j][util.manhattanDistance(state[j], pacmanPosition)]
+        distribution.normalize()
 
         #test for bottoming out
         if (distribution.totalCount() == 0):
@@ -519,39 +526,6 @@ class JointParticleFilter:
         while (i < self.numParticles):
             self.particleList.append(util.sample(distribution))
             i += 1
-
-        """
-
-        #eat test
-        if (noisyDistance == None):
-            distribution = util.Counter()
-            distribution[self.getJailPosition()] = 1
-            distribution.normalize() #TODO
-            self.particleList = []
-            i = 0
-            while (i < self.numParticles):
-                self.particleList.append(util.sample(distribution))
-                i += 1
-
-        #reweight distrubtion based on new information
-        for state in self.legalPositions:
-            distanceToPacman = util.manhattanDistance(state, pacmanPosition)
-            distribution[state] = distribution[state] * emissionModel[distanceToPacman]
-        distribution.normalize() #TODO
-
-        #test for bottoming out
-        if (distribution.totalCount() == 0):
-            self.initializeUniformly(gameState)
-            distribution = self.getBeliefDistribution()
-        distribution.normalize() #TODO
-
-        #resample for next iteration
-        self.particleList = []
-        i = 0
-        while (i < self.numParticles):
-            self.particleList.append(util.sample(distribution))
-            i += 1        
-        """
 
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
